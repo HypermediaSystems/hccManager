@@ -1,0 +1,12 @@
+{
+  "name": "hcc-manager-node-js",
+  "version": "0.0.0",
+  "description": "hccManagerNodeJS",
+  "main": "app.js",
+  "author": {
+    "name": "Helle"
+  },
+  "dependencies": {
+    "glob": "^7.1.2"
+  }
+}
