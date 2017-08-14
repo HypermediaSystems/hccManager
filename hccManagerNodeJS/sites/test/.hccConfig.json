@@ -1,0 +1,41 @@
+{"url":"http://www.test.com/",
+ "alias":"http___www_test_com_",
+ "zipped":"1",
+ "files":[
+	{"url":"index.html"        ,"replace":true, "zipped":"0"},
+	{"url":"rootabs.js"        ,"replace":true, "zipped":"0"},
+	{"url":"rootrel.js"        ,"replace":true, "zipped":"0"},
+	{"url":"html/inhtml.html"  ,"replace":true, "zipped":"1"},
+	{"url":"html/inhtml.js"    ,"replace":false, "zipped":"1"}
+	],
+  "externalUrl": [
+    {
+      "url": "http://www.extern.de/",
+      "replace": false,
+      "zipped": "1"
+    },
+    {
+      "url": "https://www.extern.de/",
+      "replace": true,
+      "zipped": "0"
+    }
+  ],
+ "externalData":[
+  {
+    "url": "https://www.extern.de/data.json",
+    "request": "data.json",
+    "replace": true,
+    "zipped": "0"
+  }],
+ "externalJS":{
+	"js":".hccExternal.js",
+   "vars":[
+       {"name":"zMin","desc":"min Zoom level"},
+       {"name":"zCnt","desc":"count of Zoom levels"},
+       {"name":"xMin","desc":"min value of x at min zoom level"},
+       {"name":"xCnt","desc":"count of x at min zoom level"},
+       {"name":"yMin","desc":"min value of y at min zoom level"},
+       {"name":"yCnt","desc":"count of y at min zoom level"},
+   ]
+   }
+}

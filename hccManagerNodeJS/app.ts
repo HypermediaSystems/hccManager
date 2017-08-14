@@ -27,8 +27,9 @@ else {
         console.log(request.url)
         var url: string = request.url;
 
-        if (url.indexOf("/entry?url=") == 0) {
-            getEntry(response, url.substring(11));
+        if (url.indexOf("/entry/") == 0) {
+            // /entry/test?url=fname
+            getEntry(response, url.substring(7).replace("?url=","/"));
         }
         else if (url === "/list") {
             getList(response);
@@ -38,6 +39,9 @@ else {
         }
         else if (url.indexOf("/sites/") == 0) {
             getSite(response, url.substring(7));
+        }
+        else if (url.indexOf("/config/") == 0) {
+            getSite(response, url.substring(8) + "/.hccConfig.json");
         }
         else {
             response.writeHead(404, { "Content-Type": "text/plain" });
@@ -136,6 +140,7 @@ function sendFile(response: any, filename: string, fileNotFound:boolean) {
         response.end();
     });
 }
+
 function getSite(response: any, url: string) {
     // Setting up MIME-Type (YOU MAY NEED TO ADD MORE HERE) <--------
     var contentTypesByExtension = {

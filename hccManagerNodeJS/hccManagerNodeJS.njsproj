@@ -5,7 +5,7 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <Name>hccManagerNodeJS</Name>
     <RootNamespace>hccManagerNodeJS</RootNamespace>
-    <ScriptArguments>3000 http://www.leaflettest.xxx E:\user\hms\xamarin\hccManager\hccManagerNodeJS\sites\leaflet\</ScriptArguments>
+    <ScriptArguments>3000 http://www.leaflettest.xxx E:\user\hms\xamarin\hccManager\hccManagerNodeJS\sites\</ScriptArguments>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -34,7 +34,6 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="sites\.hccConfig.json" />
     <Content Include="sites\leaflet\404.html" />
     <Content Include="sites\leaflet\index.html" />
     <TypeScriptCompile Include="app.ts" />
@@ -48,9 +47,6 @@
     <Folder Include="Scripts\typings\" />
     <Folder Include="Scripts\typings\node\" />
     <Folder Include="sites\leaflet\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="sites\.hccExternal.js" />
   </ItemGroup>
   <!-- Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them. -->
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="False" />

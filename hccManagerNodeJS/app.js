@@ -14,11 +14,12 @@ else if (basedir == '') {
 }
 else {
     basedir = basedir.replace(/\\/g, "/");
-    const requestHandler = (request, response) => {
+    var requestHandler = function (request, response) {
         console.log(request.url);
         var url = request.url;
-        if (url.indexOf("/entry?url=") == 0) {
-            getEntry(response, url.substring(11));
+        if (url.indexOf("/entry/") == 0) {
+            // /entry/test?url=fname
+            getEntry(response, url.substring(7).replace("?url=", "/"));
         }
         else if (url === "/list") {
             getList(response);
@@ -29,32 +30,39 @@ else {
         else if (url.indexOf("/sites/") == 0) {
             getSite(response, url.substring(7));
         }
+        else if (url.indexOf("/config/") == 0) {
+            getSite(response, url.substring(8) + "/.hccConfig.json");
+        }
         else {
             response.writeHead(404, { "Content-Type": "text/plain" });
             response.write("404 Not Found\n");
             response.end();
         }
     };
-    const server = http.createServer(requestHandler);
-    server.listen(port, (err) => {
+    var server = http.createServer(requestHandler);
+    server.listen(port, function (err) {
         if (err) {
             return console.log('something bad happened', err);
         }
-        console.log(`server is listening on ${port}`);
+        console.log("server is listening on " + port);
     });
 }
 function getList(response) {
-    const read = (dir) => fs.readdirSync(dir)
-        .reduce((files, file) => fs.statSync(path.join(dir, file)).isDirectory() ?
-        files.concat(read(path.join(dir, file))) :
-        files.concat(path.join(dir, file)), []);
+    var read = function (dir) {
+        return fs.readdirSync(dir)
+            .reduce(function (files, file) {
+            return fs.statSync(path.join(dir, file)).isDirectory() ?
+                files.concat(read(path.join(dir, file))) :
+                files.concat(path.join(dir, file));
+        }, []);
+    };
     glob(basedir + "**/*.*", function (er, files) {
         // files is an array of filenames.
         // If the `nonull` option is set, and nothing
         // was found, then files is ["**/*.js"]
         // er is an error object or null.
         var list = [];
-        files.forEach((value) => {
+        files.forEach(function (value) {
             var fn = value.substr(basedir.length);
             var e = new entry();
             e.fname = fn;
@@ -221,10 +229,11 @@ function getExternal(response) {
     }
     response.end(JSON.stringify(list));
 }
-class entry {
-    constructor() {
+var entry = (function () {
+    function entry() {
         this.canBeZipped = true;
         this.needReplace = true;
     }
-}
+    return entry;
+}());
 //# sourceMappingURL=app.js.map

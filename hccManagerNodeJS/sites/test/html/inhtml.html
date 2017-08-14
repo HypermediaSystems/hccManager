@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="inhtml.js"></script>
+<script src="../rootrel.js"></script>
+<script src="/rootabs.js"></script>
+</head>
+<body>
+<p  id="fname">inhtml/inhtml.html</p>
+<p id="para1">NOTSET</p>
+<p id="para2">NOTSET</p>
+<p id="para3">NOTSET</p>
+<script>
+	document.querySelector("#para1").innerText = getInhtml(document.querySelector("#fname").innerText);
+	document.querySelector("#para2").innerText = getRootrel(document.querySelector("#fname").innerText);
+	document.querySelector("#para3").innerText = getRootabs(document.querySelector("#fname").innerText);
+</script>
+
+</body>
+</html>
