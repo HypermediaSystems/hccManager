@@ -1,11 +1,169 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+<TabbedPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:local="clr-namespace:hccManager"
+            xmlns:local="clr-namespace:hcc;assembly=hccManager"
              x:Class="hccManager.MainPage">
+    <!--Pages can be added as references or inline-->
+    <ContentPage Title="Database" >
+        <StackLayout Margin="20" VerticalOptions="StartAndExpand">
 
-	<Label Text="Welcome to Xamarin Forms!" 
-           VerticalOptions="Center" 
-           HorizontalOptions="Center" />
+            <Grid ColumnSpacing="10"
+                    RowSpacing="10"
+                    HorizontalOptions="FillAndExpand"
+                    VerticalOptions="Start">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-</ContentPage>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="7*" />
+                </Grid.ColumnDefinitions>
+                <Label Grid.Row="0" Grid.Column="0" Text="Name" />
+                <Label Grid.Row="0" Grid.Column="1" Text="{Binding DBName}" />
+                <Label Grid.Row="1" Grid.Column="0" Text="Path" />
+                <Label Grid.Row="1" Grid.Column="1" Text="{Binding DBPath}" />
+                <Label Grid.Row="2" Grid.Column="0" Text="Count" />
+                <Label Grid.Row="2" Grid.Column="1" Text="{Binding DBCount}" />
+                <Label Grid.Row="3" Grid.Column="0" Text="Size" />
+                <Label Grid.Row="3" Grid.Column="1" Text="{Binding DBSize}" />
+
+                <Button Grid.Row="4" Grid.Column="0"  x:Name="btnDeleteAll" Text="DeleteAll" Clicked="btnDeleteAll_Clicked" />
+                <Button Grid.Row="4" Grid.Column="1"  x:Name="btnLoop" Text="Loop" Clicked="tbLoop_Clicked" />
+
+
+            </Grid>
+        </StackLayout>
+    </ContentPage>
+    <ContentPage Title="Entries" >
+        <StackLayout Margin="20" VerticalOptions="StartAndExpand">
+            <Grid ColumnSpacing="10"
+                    RowSpacing="10"
+                    HorizontalOptions="FillAndExpand"
+                    VerticalOptions="Start">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="3*" />
+                </Grid.ColumnDefinitions>
+                <Label Grid.Row="0" Grid.Column="0" Text="Url" />
+                <Entry Grid.Row="0" Grid.Column="1" x:Name="tbUrl" Text=""  />
+                <Button Grid.Row="0" Grid.Column="2"  x:Name="btnRefresh" Text="Refresh" Clicked="btnRefresh_Clicked"/>
+
+            </Grid>
+
+
+            <ListView x:Name="listView" Margin="20"  
+                      SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                      HasUnevenRows="true" >
+                <ListView.Header>
+                    <StackLayout Margin="20,0,0,0" Orientation="Horizontal" HorizontalOptions="FillAndExpand" BackgroundColor="#cccccc">
+                        <Grid ColumnSpacing="10"
+                                    RowSpacing="10"
+                                    HorizontalOptions="FillAndExpand"
+                                    VerticalOptions="Start">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="6*" />
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="2*" />
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Row="0" Grid.Column="0" Text="url"  HorizontalOptions="StartAndExpand"/>
+                            <Label Grid.Row="0" Grid.Column="1" Text="size" VerticalTextAlignment="Center" HorizontalOptions="EndAndExpand" />
+                            <Label Grid.Row="0" Grid.Column="2" Text="zipped" VerticalTextAlignment="Center" HorizontalOptions="EndAndExpand" />
+                        </Grid>
+                    </StackLayout>
+                </ListView.Header>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell >
+                            <StackLayout Margin="20,0,0,0" Orientation="Horizontal" HorizontalOptions="FillAndExpand">
+                                <Grid ColumnSpacing="10"
+                                    RowSpacing="10"
+                                    HorizontalOptions="FillAndExpand"
+                                    VerticalOptions="Start">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="6*" />
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="2*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Row="0" Grid.Column="0" Text="{Binding url}" Clicked="btnSelect_Clicked"  HorizontalOptions="StartAndExpand"/>
+                                    <Label Grid.Row="0" Grid.Column="1" Text="{Binding size}" VerticalTextAlignment="Center" HorizontalOptions="EndAndExpand" />
+                                    <Label Grid.Row="0" Grid.Column="2" Text="{Binding zipped}" VerticalTextAlignment="Center" HorizontalOptions="EndAndExpand" />
+                                </Grid>
+                            </StackLayout>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <Grid x:Name="detailGrid" ColumnSpacing="10"
+                RowSpacing="10"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="Start">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="6*" />
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="2*" />
+                </Grid.ColumnDefinitions>
+                <Label Grid.Row="0" Grid.Column="0" Text="{Binding url}" VerticalTextAlignment="Center" HorizontalOptions="StartAndExpand" />
+                <Label Grid.Row="0" Grid.Column="1" Text="{Binding size}" VerticalTextAlignment="Center" HorizontalOptions="EndAndExpand" />
+                <Label Grid.Row="0" Grid.Column="2" Text="{Binding zipped}" VerticalTextAlignment="Center" HorizontalOptions="EndAndExpand" />
+                <Button Grid.Row="1" Grid.Column="0" Text="Delete" local:HccTag.Tag="{Binding url}"  Clicked="btnEntryDelete_Clicked"  HorizontalOptions="StartAndExpand"/>
+
+
+            </Grid>
+
+        </StackLayout>
+    </ContentPage>
+
+    <ContentPage Title="Import" >
+        <StackLayout Margin="20" VerticalOptions="StartAndExpand">
+            <Grid ColumnSpacing="10"
+                    RowSpacing="10"
+                    HorizontalOptions="FillAndExpand"
+                    VerticalOptions="Start">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="3*" />
+                </Grid.ColumnDefinitions>
+                <Label Grid.Row="0" Grid.Column="0" Text="Server" />
+                <Entry Grid.Row="0" Grid.Column="1" x:Name="tbImportServer" Text="http://localhost:3000/"  />
+                <Label Grid.Row="1" Grid.Column="0" Text="Site" />
+                <Entry Grid.Row="1" Grid.Column="1" x:Name="tbImportSite" Text="test"  />
+                <Button Grid.Row="2" Grid.Column="0"  x:Name="btnImport" Text="Import" Clicked="btnImport_Clicked"/>
+
+                <Label Grid.Row="3" Grid.Column="0" x:Name="lblImportStatus" Text="" />
+
+            </Grid>
+
+
+
+
+        </StackLayout>
+    </ContentPage>
+</TabbedPage>
