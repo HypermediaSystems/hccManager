@@ -1,9 +1,9 @@
 ﻿{
   "dependencies": {
-    "HttpCachedClient.HMS": "1.0.15",
+    "HttpCachedClient.HMS": "1.0.26",
     "Microsoft.NETCore.UniversalWindowsPlatform": "5.2.2",
     "Newtonsoft.Json": "10.0.3",
-    "Xamarin.Forms": "2.3.4.224"
+    "Xamarin.Forms": "2.3.4.247"
   },
   "frameworks": {
     "uap10.0": {}

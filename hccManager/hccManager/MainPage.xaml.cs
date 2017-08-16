@@ -84,6 +84,60 @@ namespace hccManager
             refreshList();
 
         }
+        delegate Boolean bkup(string url);
+
+        private async void btnBackup_Clicked(object sender, EventArgs e)
+        {
+            try
+            {
+
+                var hcClient = (BindingContext as HMS.Net.Http.HttpCachedClient);
+
+                string serverUrl = tbServer.Text.Trim();
+
+                serverUrl = hcc.HccUtil.url_join(serverUrl, "upload");
+
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    lblServerStatus.Text = "Backuping to " + serverUrl + " ...";
+                });
+
+                // System.Net.Http.Headers.AuthenticationHeaderValue authenticationHeaderValue = null;
+                await hcClient.BackupAsync(serverUrl);
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    lblServerStatus.Text = "Backuping to " + serverUrl + " done.";
+                });
+                updateDatabaseTab();
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+        }
+
+        private async void btnRestore_Clicked(object sender, EventArgs e)
+        {
+            var hcClient = (BindingContext as HMS.Net.Http.HttpCachedClient);
+
+            string serverUrl = tbServer.Text.Trim();
+
+            serverUrl = hcc.HccUtil.url_join(serverUrl, "download?url=" + HttpCachedClient.dbName + ".sqlite");
+
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                lblServerStatus.Text = "Restoring from " + serverUrl + " ...";
+            });
+            await hcClient.RestoreAsync(serverUrl);
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                lblServerStatus.Text = "Restoring from " + serverUrl + " done.";
+            });
+
+            updateDatabaseTab();
+
+        }
         private void btnDeleteAll_Clicked(object sender, EventArgs e)
         {
             var hcc = (BindingContext as HMS.Net.Http.HttpCachedClient);
@@ -265,6 +319,8 @@ namespace hccManager
         {
             lblImportStatus.Text += Environment.NewLine + status;
         }
+
+       
     }
 
 

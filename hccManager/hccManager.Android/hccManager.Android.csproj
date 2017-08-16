@@ -53,11 +53,11 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="HMSCache, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\HttpCachedClient.HMS.1.0.15\lib\MonoAndroid10\HMSCache.dll</HintPath>
+      <HintPath>..\..\packages\HttpCachedClient.HMS.1.0.26\lib\MonoAndroid10\HMSCache.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="HMSCache.Android, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\HttpCachedClient.HMS.1.0.15\lib\MonoAndroid10\HMSCache.Android.dll</HintPath>
+      <HintPath>..\..\packages\HttpCachedClient.HMS.1.0.26\lib\MonoAndroid10\HMSCache.Android.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
