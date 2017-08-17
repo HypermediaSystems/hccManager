@@ -23,7 +23,7 @@ namespace hccManager.iOS
         public override bool FinishedLaunching(UIApplication app, NSDictionary options)
         {
             global::Xamarin.Forms.Forms.Init();
-            LoadApplication(new App());
+            LoadApplication(new App(new HMS.Net.Http.iOS.SQLImplementation.SqliOS()));
 
             return base.FinishedLaunching(app, options);
         }

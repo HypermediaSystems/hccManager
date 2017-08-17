@@ -20,7 +20,7 @@ namespace hccManager.Droid
             base.OnCreate(bundle);
 
             global::Xamarin.Forms.Forms.Init(this, bundle);
-            LoadApplication(new App());
+            LoadApplication(new App(new HMS.Net.Http.Android.SQLImplementation.SqlAndroid()));
         }
     }
 }

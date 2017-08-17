@@ -164,6 +164,11 @@
                     VerticalOptions="Start">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <Grid.ColumnDefinitions>
@@ -178,7 +183,15 @@
                 <Button Grid.Row="2" Grid.Column="0"  x:Name="btnImport" Text="Import" Clicked="btnImport_Clicked"/>
 
                 <Label Grid.Row="3" Grid.Column="0" x:Name="lblImportStatus" Text="" />
-
+                <Editor Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" x:Name="code" HeightRequest="500" Text="">
+                    <Editor.BackgroundColor>
+                        <OnPlatform x:TypeArguments="Color"
+                                iOS="#eeeeee"
+                                Android="#eeeeee"
+                                WinPhone="#eeeeee" />
+                    </Editor.BackgroundColor>
+                </Editor>
+                <Button Grid.Row="5" Grid.Column="0" Text="execute" x:Name="btnExecute" Clicked="btnExecute_Clicked"/>
             </Grid>
 
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HMS.Net.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,11 +10,11 @@ namespace hccManager
 {
     public partial class App : Application
     {
-        public App()
+        public App(iSQL SQL)
         {
             InitializeComponent();
 
-            MainPage = new hccManager.MainPage();
+            MainPage = new hccManager.MainPage(SQL);
         }
 
         protected override void OnStart()
