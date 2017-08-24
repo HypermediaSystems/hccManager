@@ -1,4 +1,5 @@
 ﻿using hcc;
+using HccConfig;
 using HMS.Net.Http;
 using System;
 using System.Collections.Generic;
@@ -223,7 +224,12 @@ namespace hccManager
             HccConfig.Rootobject hccConfig;
             try
             {
-                using (HttpResponseMessage response = await httpClient.GetAsync(server + "config?site=" + site, HttpCompletionOption.ResponseContentRead))
+                string configUrl = server + "config?site=" + site;
+                if( cbNodeJS.IsToggled == false )
+                {
+                    configUrl = server + ".hccConfig.json";
+                }
+                using (HttpResponseMessage response = await httpClient.GetAsync(configUrl, HttpCompletionOption.ResponseContentRead))
                 {
                     string json = await response.Content.ReadAsStringAsync();
 
@@ -247,8 +253,12 @@ namespace hccManager
                 import_status_set("get entry " + (i + 1).ToString() + " - " + hccConfig.files.Length.ToString());
                 try
                 {
-
-                    using (HttpResponseMessage response = await httpClient.GetAsync(server + "entry?site=" + site + "&url=" + hccConfig.files[i].url, HttpCompletionOption.ResponseContentRead))
+                    string entryUrl = server + "entry?site=" + site + "&url=" + hccConfig.files[i].url;
+                    if (cbNodeJS.IsToggled == false)
+                    {
+                        entryUrl = server + hccConfig.files[i].url;
+                    }
+                    using (HttpResponseMessage response = await httpClient.GetAsync(entryUrl, HttpCompletionOption.ResponseContentRead))
                     {
                         string headerString = hcClient.getCachedHeader(response.Headers);
 
@@ -308,7 +318,8 @@ namespace hccManager
                 import_status_set("get entry " + (i + 1).ToString() + " - " + hccConfig.externalUrl.Length.ToString());
                 try
                 {
-
+                    await addUrl(httpClient, hccConfig.externalUrl[i], hccConfig.zipped);
+#if fasle
                     using (HttpResponseMessage response = await httpClient.GetAsync(hccConfig.externalUrl[i].url, HttpCompletionOption.ResponseContentRead))
                     {
                         string headerString = hcClient.getCachedHeader(response.Headers);
@@ -351,6 +362,7 @@ namespace hccManager
                             }
                         }
                     }
+#endif
                 }
                 catch (Exception ex)
                 {
@@ -362,8 +374,12 @@ namespace hccManager
             // get the   
             try
             {
-
-                using (HttpResponseMessage response = await httpClient.GetAsync(server + "entry?site=" + site + "&url=" + hccConfig.externalJS.js, HttpCompletionOption.ResponseContentRead))
+                string externalJSUrl = server + "entry?site=" + site + "&url=" + hccConfig.externalJS.js;
+                if (cbNodeJS.IsToggled == false)
+                {
+                    externalJSUrl = server + ".hccExternal.js";
+                }
+                using (HttpResponseMessage response = await httpClient.GetAsync(externalJSUrl, HttpCompletionOption.ResponseContentRead))
                 {
                     string headerString = hcClient.getCachedHeader(response.Headers);
 
@@ -377,6 +393,51 @@ namespace hccManager
                 return;
             }
         }
+        private async Task addUrl(HttpClient httpClient, Externalurl externalUrl, string zippedDef)
+        {
+            using (HttpResponseMessage response = await httpClient.GetAsync(externalUrl.url, HttpCompletionOption.ResponseContentRead))
+            {
+                string headerString = hcClient.getCachedHeader(response.Headers);
+
+                Stream streamToReadFrom = await response.Content.ReadAsStreamAsync();
+
+                Stream strm = new MemoryStream();
+                streamToReadFrom.CopyTo(strm);
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    byte[] data = ((MemoryStream)strm).ToArray();
+                    // we have to remove the BOM, since we want to store only text
+                    int bomEnd = Bom.GetCursor(data);
+                    if (bomEnd > 0)
+                    {
+                        Byte[] datax = new Byte[data.Length - bomEnd];
+                        Array.Copy(data, bomEnd, datax, 0, data.Length - bomEnd);
+                        data = datax;
+                    }
+                    Byte zipped = hcClient.zipped;
+                    if ( !string.IsNullOrEmpty(zippedDef) )
+                    {
+                        zipped = Byte.Parse(zippedDef);
+                    }
+                    if (externalUrl.zipped != null)
+                    {
+                        zipped = Byte.Parse(externalUrl.zipped);
+                    }
+
+                    if (hcClient.encryptFunction != null)
+                    {
+                        data = hcClient.encryptFunction(externalUrl.url, data);
+
+                        hcClient.AddCachedStream(externalUrl.url, data, headers: headerString, zipped: zipped, encrypted: 1);
+                    }
+                    else
+                    {
+                        hcClient.AddCachedStream(externalUrl.url, data, headers: headerString, zipped: zipped);
+                    }
+                }
+            }
+        }
         private void import_status_set(string status)
         {
             lblImportStatus.Text = status;
@@ -386,7 +447,7 @@ namespace hccManager
             lblImportStatus.Text += Environment.NewLine + status;
         }
 
-        private void btnExecute_Clicked(object sender, EventArgs e)
+        private async void btnExecute_Clicked(object sender, EventArgs e)
         {
             lblServerStatus.Text = "";
             JSInt jsint = new JSInt();
@@ -402,8 +463,18 @@ namespace hccManager
             code.Text = String.Join(Environment.NewLine, jsint.winext.addCachedAliasList) + String.Join(Environment.NewLine, jsint.winext.addCachedExternalDataList);
             var hcClient = (BindingContext as HMS.Net.Http.HttpCachedClient);
 
+            HttpClient httpClient = new HttpClient();
+            int i = 0;
             foreach (var url in jsint.winext.addCachedExternalDataList)
             {
+                import_status_set("get external " + (i + 1).ToString() + " - " + jsint.winext.addCachedExternalDataList.Count.ToString());
+                i++;
+
+                Externalurl externalUrl = new Externalurl();
+                externalUrl.url = url;
+                externalUrl.zipped = "0";
+                externalUrl.replace = true;
+                await addUrl(httpClient, externalUrl, null);
 
             }
             foreach ( KeyValuePair<string,string> kv in jsint.winext.addCachedAliasList)
@@ -413,9 +484,63 @@ namespace hccManager
                 hcClient.AddCachedAliasUrl(aliasUrl, url);
 
             }
+            updateDatabaseTab();
 
         }
 
+        private void btnReset_Clicked(object sender, EventArgs e)
+        {
+            var hcClient = (BindingContext as HMS.Net.Http.HttpCachedClient);
+            hcClient.Reset();
+            updateDatabaseTab();
+
+        }
+
+        private void btnLoop_Clicked(object sender, EventArgs e)
+        {
+            var hcClient = (BindingContext as HMS.Net.Http.HttpCachedClient);
+
+            string debugUrl = "debugUrl";
+            hcClient.AddCachedString(debugUrl, "DebugData");
+
+
+            int i1 = 0;
+            int i2 = 0;
+            Task.Run(async () =>
+            {
+                for (i1 = 0; i1 < 100; i1++)
+                {
+                    string url = tbUrl.Text.Trim();
+                    await hcClient.GetCachedString(debugUrl, (json, hi) =>
+                    {
+                        System.Diagnostics.Debug.WriteLine("tbLoop_Clicked1 " + i1.ToString() + "  " + i2.ToString());
+                    });
+                    Task.Delay(100).Wait();
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        btnLoop.Text = "Loop " + i1.ToString() + "  " + i2.ToString();
+                    });
+                }
+            });
+            Task.Run(async () =>
+            {
+                for (i2 = 0; i2 < 200; i2++)
+                {
+                    string url = tbUrl.Text.Trim();
+                    await hcClient.GetCachedString(debugUrl, (json, hi) =>
+                    {
+                        System.Diagnostics.Debug.WriteLine("tbLoop_Clicked2 " + i1.ToString() + "  " + i2.ToString());
+                    });
+                    Task.Delay(50).Wait();
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        btnLoop.Text = "Loop " + i1.ToString() + "  " + i2.ToString();
+                    });
+                }
+            });
+            updateDatabaseTab();
+
+        }
     }
 
 
