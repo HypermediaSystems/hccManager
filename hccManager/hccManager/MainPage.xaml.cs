@@ -242,15 +242,61 @@ namespace hccManager
                 import_status_set("ERROR:site " + ex.ToString());
                 return;
             }
+
+
+            if ( !string.IsNullOrEmpty(hccConfig.fileList) )
+            {
+                try
+                {
+                    string configUrl = server + "config?site=" + site + "&url=" + hccConfig.fileList;
+                    if (cbNodeJS.IsToggled == false)
+                    {
+                        configUrl = server + hccConfig.fileList;
+                    }
+                    using (HttpResponseMessage response = await httpClient.GetAsync(configUrl, HttpCompletionOption.ResponseContentRead))
+                    {
+                        string json = await response.Content.ReadAsStringAsync();
+
+                        var files = Newtonsoft.Json.JsonConvert.DeserializeObject<string[]>(json);
+                        var fl = hccConfig.files.ToList();
+                        foreach(var f in files)
+                        {
+                            File file = new File();
+                            file.replace = true;
+                            file.url = f;
+                            file.zipped = "1";
+                            fl.Add(file);
+                        }
+
+                        hccConfig.files = fl.ToArray();
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // ToDo log this error
+                    import_status_set("ERROR:site " + ex.ToString());
+                    return;
+                }
+            }
+
+
             import_status_set("got list from " + server + " with " + hccConfig.files.Length.ToString() + " entries");
 
             var hcClient = (BindingContext as HMS.Net.Http.HttpCachedClient);
 
-            hcClient.AddCachedMetadata("url", hccConfig.url);
+            hcClient.AddCachedMetadata("hcc.url", hccConfig.url);
+            string hccDefaultHTML = "index.html";
 
             for (int i = 0; i < hccConfig.files.Length; i++)
             {
                 import_status_set("get entry " + (i + 1).ToString() + " - " + hccConfig.files.Length.ToString());
+
+                if( hccConfig.files[i].defaulthtml )
+                {
+                    hccDefaultHTML = hccConfig.files[i].url;
+                }
+
                 try
                 {
                     string entryUrl = server + "entry?site=" + site + "&url=" + hccConfig.files[i].url;
@@ -289,6 +335,11 @@ namespace hccManager
                                 }
                                 data = Encoding.UTF8.GetBytes(html);
                             }
+                            byte zipped = hcClient.zipped;
+                            if (hccConfig.files[i].zipped == "1")
+                                zipped = 1;
+                            else if (hccConfig.files[i].zipped == "0")
+                                zipped = 0;
 
                             if (hcClient.encryptFunction != null)
                             {
@@ -298,7 +349,8 @@ namespace hccManager
                             }
                             else
                             {
-                                hcClient.AddCachedStream(HccUtil.url_join(hccConfig.url, hccConfig.files[i].url), data, headers: headerString, zipped: 0); // hcc.zipped);
+
+                                hcClient.AddCachedStream(HccUtil.url_join(hccConfig.url, hccConfig.files[i].url), data, headers: headerString, zipped: zipped); // hcc.zipped);
                             }
                         }
                     }
@@ -311,6 +363,7 @@ namespace hccManager
                 }
 
             }
+            hcClient.AddCachedMetadata("hcc.defaultHTML", hccDefaultHTML);
 
             import_status_set("got list of external from " + server + " with " + hccConfig.externalUrl.Length.ToString() + " entries");
             for (int i = 0; i < hccConfig.externalUrl.Length; i++)
