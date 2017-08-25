@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": {
-    "HttpCachedClient.HMS": "1.0.36",
+    "HttpCachedClient.HMS": "1.0.39",
     "Jint": "2.10.4",
     "Microsoft.NETCore.UniversalWindowsPlatform": "5.2.2",
     "Newtonsoft.Json": "10.0.3",

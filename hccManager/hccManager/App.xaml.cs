@@ -10,7 +10,7 @@ namespace hccManager
 {
     public partial class App : Application
     {
-        public App(iSQL SQL)
+        public App(ISql SQL)
         {
             InitializeComponent();
 

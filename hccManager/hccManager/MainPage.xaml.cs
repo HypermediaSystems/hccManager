@@ -14,10 +14,10 @@ namespace hccManager
 {
     public partial class MainPage : TabbedPage
     {
-        private iSQL SQL;
+        private ISql SQL;
         private SqLiteCache sqLiteCache = null;
         private HttpCachedClient hcClient;
-        public MainPage(iSQL SQL)
+        public MainPage(ISql SQL)
         {
             InitializeComponent();
             listView.ItemSelected += listView_ItemSelected;
@@ -84,8 +84,7 @@ namespace hccManager
             (BindingContext as HMS.Net.Http.HttpCachedClient).DeleteCachedData(url);
             refreshList();
 
-        }
-        delegate Boolean bkup(string url);
+        }        
 
         private async void btnBackup_Clicked(object sender, EventArgs e)
         {
@@ -126,17 +125,17 @@ namespace hccManager
             Boolean ret = false;
             string errMsg = "";
 
-            var hcClient = (BindingContext as HMS.Net.Http.HttpCachedClient);
+            var hcClientLocal = (BindingContext as HMS.Net.Http.HttpCachedClient);
 
             string serverUrl = tbServer.Text.Trim();
 
-            serverUrl = hcc.HccUtil.url_join(serverUrl, "download?url=" + HttpCachedClient.dbName + ".sqlite");
+            serverUrl = hcc.HccUtil.url_join(serverUrl, "download?url=" + HttpCachedClient._dbName + ".sqlite");
 
             lblServerStatus.Text = "Restoring from " + serverUrl + " ...";
 
             try
             {
-                ret = await hcClient.RestoreAsync(serverUrl);
+                ret = await hcClientLocal.RestoreAsync(serverUrl);
             }
             catch (Exception ex)
             {
@@ -181,7 +180,7 @@ namespace hccManager
                 for (i1 = 0; i1 < 100; i1++)
                 {
                     string url = tbUrl.Text.Trim();
-                    await hcClient.GetCachedString(debugUrl, (json, hi) =>
+                    await hcClient.GetCachedStringAsync(debugUrl, (json, hi) =>
                     {
                         System.Diagnostics.Debug.WriteLine("tbLoop_Clicked1 " + i1.ToString() + "  " + i2.ToString());
                     });
@@ -197,7 +196,7 @@ namespace hccManager
                 for (i2 = 0; i2 < 200; i2++)
                 {
                     string url = tbUrl.Text.Trim();
-                    await hcClient.GetCachedString(debugUrl, (json, hi) =>
+                    await hcClient.GetCachedStringAsync(debugUrl, (json, hi) =>
                     {
                         System.Diagnostics.Debug.WriteLine("tbLoop_Clicked2 " + i1.ToString() + "  " + i2.ToString());
                     });
@@ -214,7 +213,7 @@ namespace hccManager
             string server = tbImportServer.Text.Trim();
             string site = tbImportSite.Text.Trim();
 
-            if (!server.EndsWith("/"))
+            if (!server.EndsWith("/",StringComparison.CurrentCulture))
                 server += "/";
 
             import_status_set("getting list from " + server + " ... ");
@@ -306,7 +305,7 @@ namespace hccManager
                     }
                     using (HttpResponseMessage response = await httpClient.GetAsync(entryUrl, HttpCompletionOption.ResponseContentRead))
                     {
-                        string headerString = hcClient.getCachedHeader(response.Headers);
+                        string headerString = hcClient.GetCachedHeader(response.Headers);
 
                         Stream streamToReadFrom = await response.Content.ReadAsStreamAsync();
 
@@ -434,7 +433,7 @@ namespace hccManager
                 }
                 using (HttpResponseMessage response = await httpClient.GetAsync(externalJSUrl, HttpCompletionOption.ResponseContentRead))
                 {
-                    string headerString = hcClient.getCachedHeader(response.Headers);
+                    string headerString = hcClient.GetCachedHeader(response.Headers);
 
                     code.Text = await response.Content.ReadAsStringAsync();
                 }
@@ -450,7 +449,7 @@ namespace hccManager
         {
             using (HttpResponseMessage response = await httpClient.GetAsync(externalUrl.url, HttpCompletionOption.ResponseContentRead))
             {
-                string headerString = hcClient.getCachedHeader(response.Headers);
+                string headerString = hcClient.GetCachedHeader(response.Headers);
 
                 Stream streamToReadFrom = await response.Content.ReadAsStreamAsync();
 
@@ -564,7 +563,7 @@ namespace hccManager
                 for (i1 = 0; i1 < 100; i1++)
                 {
                     string url = tbUrl.Text.Trim();
-                    await hcClient.GetCachedString(debugUrl, (json, hi) =>
+                    await hcClient.GetCachedStringAsync(debugUrl, (json, hi) =>
                     {
                         System.Diagnostics.Debug.WriteLine("tbLoop_Clicked1 " + i1.ToString() + "  " + i2.ToString());
                     });
@@ -580,7 +579,7 @@ namespace hccManager
                 for (i2 = 0; i2 < 200; i2++)
                 {
                     string url = tbUrl.Text.Trim();
-                    await hcClient.GetCachedString(debugUrl, (json, hi) =>
+                    await hcClient.GetCachedStringAsync(debugUrl, (json, hi) =>
                     {
                         System.Diagnostics.Debug.WriteLine("tbLoop_Clicked2 " + i1.ToString() + "  " + i2.ToString());
                     });

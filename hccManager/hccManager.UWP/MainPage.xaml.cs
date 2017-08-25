@@ -21,7 +21,7 @@ namespace hccManager.UWP
         {
             this.InitializeComponent();
 
-            LoadApplication(new hccManager.App(new HMS.Net.Http.UWP.SQLImplementation.SqlUWP()));
+            LoadApplication(new hccManager.App(new HMS.Net.Http.UWP.SQLImplementation.SqlUwp()));
         }
     }
 }
