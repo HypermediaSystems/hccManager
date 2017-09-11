@@ -7,7 +7,7 @@ using Xamarin.Forms;
 
 namespace hccManager
 {
-    class WinExt
+    internal class WinExt
     {
         public List<string> addCachedExternalDataList;
         public Dictionary<string,string> addCachedAliasList;
@@ -17,11 +17,13 @@ namespace hccManager
             addCachedExternalDataList = new List<string>();
             addCachedAliasList = new Dictionary<string, string>();
         }
+
         public void AddCachedExternalData(string url)
         {
             System.Diagnostics.Debug.WriteLine("AddCachedExternalData " + url);
             addCachedExternalDataList.Add(url);
         }
+
         public void AddCachedAlias(string aliasUrl, string url)
         {
             System.Diagnostics.Debug.WriteLine("AddCachedAlias " + aliasUrl + " " + url);
@@ -30,30 +32,30 @@ namespace hccManager
                 addCachedAliasList.Add(aliasUrl, url);
             }
         }
-        
     }
-    class JSInt
+
+    internal class JSInt
     {
         public delegate void OnError(string errMsg);
-        public OnError onError = null;
+        public OnError onError;
 
         public WinExt winext;
 
-        private Jint.Engine engine;
+        readonly private Jint.Engine engine;
         public JSInt()
         {
-            engine = new Jint.Engine((options) => { options.DebugMode(); });
-            // engine.Step += (jsSender, info) => {
-            //     Device.BeginInvokeOnMainThread(() => {
-            //         System.Diagnostics.Debug.WriteLine(info.CurrentStatement);
-            //     });
-            //
-            //     return Jint.Runtime.Debugger.StepMode.Into;
-            // };
+            engine = new Jint.Engine((options) => options.DebugMode());
+
+            engine.Step += (jsSender, info) => {
+                Device.BeginInvokeOnMainThread(() => System.Diagnostics.Debug.WriteLine(info.CurrentStatement));
+
+                return Jint.Runtime.Debugger.StepMode.Into;
+            };
             winext = new WinExt();
             engine.SetValue("external", winext);
             engine.SetValue("print", new Action<object>(Print));
         }
+
         public void execute(string code)
         {
             try
@@ -69,14 +71,12 @@ namespace hccManager
                 });
             }
         }
+
         public void Print(object s)
         {
             if (s == null)
                 s = "null";
-            Device.BeginInvokeOnMainThread(() =>
-            {
-                System.Diagnostics.Debug.WriteLine(s);
-            });
+            Device.BeginInvokeOnMainThread(() => System.Diagnostics.Debug.WriteLine(s) );
         }
     }
 }

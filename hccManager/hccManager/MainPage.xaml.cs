@@ -14,8 +14,8 @@ namespace hccManager
 {
     public partial class MainPage : TabbedPage
     {
-        private ISql SQL;
-        private SqLiteCache sqLiteCache = null;
+        readonly private ISql SQL;
+        readonly private SqLiteCache sqLiteCache;
         private HttpCachedClient hcClient;
         public MainPage(ISql SQL)
         {
@@ -23,11 +23,15 @@ namespace hccManager
             listView.ItemSelected += listView_ItemSelected;
             listView.ItemTapped += ListView_ItemTapped;
 
-            this.SQL = SQL; //  Xamarin.Forms.DependencyService.Get<iSQL>();
+            this.SQL = SQL;
             this.sqLiteCache = new SqLiteCache(SQL, "");
-            this.hcClient = new HttpCachedClient(this.sqLiteCache);
-
-            BindingContext = this.hcClient;
+            this.sqLiteCache.CreateAsync().ContinueWith(t =>
+            {
+                this.hcClient = new HttpCachedClient(this.sqLiteCache);
+                Device.BeginInvokeOnMainThread(() =>
+                    BindingContext = this.hcClient
+                );
+            });
 
             this.CurrentPageChanged += (object sender, EventArgs e) => {
                 var i = this.Children.IndexOf(this.CurrentPage);
@@ -37,90 +41,100 @@ namespace hccManager
                     updateDatabaseTab();
                 }
             };
-
         }
+
         private void updateDatabaseTab()
         {
-            BindingContext = null;
-            BindingContext = this.hcClient;
-            this.ApplyBindings();
-            this.UpdateChildrenLayout();
-
-        }
-        private void ListView_ItemTapped(object sender, ItemTappedEventArgs e)
-        {
-            detailGrid.BindingContext = (BindingContext as HMS.Net.Http.HttpCachedClient).DBEntry(((SqLiteCacheItem)e.Item).url);
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                BindingContext = null;
+                BindingContext = this.hcClient;
+                this.ApplyBindings();
+                this.UpdateChildrenLayout();
+            });
         }
 
-        private void listView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        private async void ListView_ItemTapped(object sender, ItemTappedEventArgs e)
         {
-            detailGrid.BindingContext = (BindingContext as HMS.Net.Http.HttpCachedClient).DBEntry(((SqLiteCacheItem)e.SelectedItem).url);
+            detailGrid.BindingContext = await (BindingContext as HMS.Net.Http.HttpCachedClient)?.DBEntryAsync(((SqLiteCacheItem)e.Item).url);
+        }
+
+        private async void listView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        {
+            detailGrid.BindingContext = await (BindingContext as HMS.Net.Http.HttpCachedClient)?.DBEntryAsync(((SqLiteCacheItem)e.SelectedItem).url);
         }
 
         private void btnRefresh_Clicked(object sender, EventArgs e)
         {
             refreshList();
         }
+
         private void refreshList()
         {
             listView.ItemTapped -= ListView_ItemTapped;
             listView.ItemSelected -= listView_ItemSelected;
-            bindingObj bo = new bindingObj();
+            BindingObj bo = new BindingObj();
             listView.BindingContext = bo;
-            listView.ItemsSource = (BindingContext as HMS.Net.Http.HttpCachedClient).DBEntries(tbUrl.Text);
+
+            IEnumerable<SqLiteCacheItem> list = null;
+            Task.Run(async () =>
+            {
+                list = await (BindingContext as HMS.Net.Http.HttpCachedClient)?.DBEntriesAsync(tbUrl.Text);
+            }).Wait();
+            listView.ItemsSource = list;
+
+
             listView.ItemSelected += listView_ItemSelected;
             listView.ItemTapped += ListView_ItemTapped;
 
             listView.SelectedItem = ((IEnumerable<SqLiteCacheItem>)listView.ItemsSource).FirstOrDefault();
+        }
 
-        }
-        private void btnSelect_Clicked(object sender, EventArgs e)
+        private async void btnSelect_Clicked(object sender, EventArgs e)
         {
-            detailGrid.BindingContext = (BindingContext as HMS.Net.Http.HttpCachedClient).DBEntry(((Button)sender).Text);
+            detailGrid.BindingContext = await (BindingContext as HMS.Net.Http.HttpCachedClient)?.DBEntryAsync(((Button)sender).Text);
         }
-        private void btnEntryDelete_Clicked(object sender, EventArgs e)
+
+        private async void btnEntryDelete_Clicked(object sender, EventArgs e)
         {
             string url = HccTag.GetTag((Button)sender);
-            (BindingContext as HMS.Net.Http.HttpCachedClient).DeleteCachedData(url);
+            await (BindingContext as HMS.Net.Http.HttpCachedClient)?.DeleteCachedDataAsync(url);
             refreshList();
+        }
 
-        }        
-
-        private async void btnBackup_Clicked(object sender, EventArgs e)
+        private async void btnBackup_ClickedAsync(object sender, EventArgs e)
         {
             Boolean ret = false;
             string errMsg = "";
-            var hcClient = (BindingContext as HMS.Net.Http.HttpCachedClient);
+            var hcClientLocale = (BindingContext as HMS.Net.Http.HttpCachedClient);
 
             string serverUrl = tbServer.Text.Trim();
 
             serverUrl = hcc.HccUtil.url_join(serverUrl, "upload");
 
-            lblServerStatus.Text = "Backuping to " + serverUrl + " ...";
-            // System.Net.Http.Headers.AuthenticationHeaderValue authenticationHeaderValue = null;
+            server_status_set("Backuping to " + serverUrl + " ...");
             try
             {
-                ret = await hcClient.BackupAsync(serverUrl);
+                ret = await hcClientLocale.BackupAsync(serverUrl).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 // ToDo log this error
                 ret = false;
                 errMsg = ex.ToString();
-
             }
-            if (ret == false)
+            if ( !ret )
             {
-                lblServerStatus.Text = "Backuping to " + serverUrl + " ended with error. " + errMsg;
+                server_status_set("Backuping to " + serverUrl + " ended with error. " + errMsg);
             }
             else
             {
-                lblServerStatus.Text = "Backuping to " + serverUrl + " done.";
+                server_status_set("Backuping to " + serverUrl + " done.");
             }
             updateDatabaseTab();
         }
 
-        private async void btnRestore_Clicked(object sender, EventArgs e)
+        private async void btnRestore_ClickedAsync(object sender, EventArgs e)
         {
             Boolean ret = false;
             string errMsg = "";
@@ -131,47 +145,45 @@ namespace hccManager
 
             serverUrl = hcc.HccUtil.url_join(serverUrl, "download?url=" + HttpCachedClient._dbName + ".sqlite");
 
-            lblServerStatus.Text = "Restoring from " + serverUrl + " ...";
+            server_status_set("Restoring from " + serverUrl + " ...");
 
             try
             {
-                ret = await hcClientLocal.RestoreAsync(serverUrl);
+                ret = await hcClientLocal.RestoreAsync(serverUrl).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 // ToDo log this error
                 ret = false;
                 errMsg = ex.ToString();
-
             }
 
-            if (ret == false)
+            if ( !ret )
             {
-                lblServerStatus.Text = "Restoring from " + serverUrl + " ended with error. " + errMsg;
+                server_status_set("Restoring from " + serverUrl + " ended with error. " + errMsg);
             }
             else
             {
-                lblServerStatus.Text = "Restoring from " + serverUrl + " done.";
+                server_status_set("Restoring from " + serverUrl + " done.");
             }
 
             updateDatabaseTab();
-
         }
-        private void btnDeleteAll_Clicked(object sender, EventArgs e)
+
+        private async void btnDeleteAll_Clicked(object sender, EventArgs e)
         {
-            var hcClient = (BindingContext as HMS.Net.Http.HttpCachedClient);
-            hcClient.DeleteAllCachedData();
+            var hcClientLocale = (BindingContext as HMS.Net.Http.HttpCachedClient);
+            await hcClientLocale.DeleteAllCachedDataAsync().ConfigureAwait(false);
 
             updateDatabaseTab();
-
         }
-        private void tbLoop_Clicked(object sender, EventArgs e)
+
+        private async void tbLoop_Clicked(object sender, EventArgs e)
         {
-            var hcClient = (BindingContext as HMS.Net.Http.HttpCachedClient);
+            var hcClientLocale = (BindingContext as HMS.Net.Http.HttpCachedClient);
 
-            string debugUrl = "debugUrl";
-            hcClient.AddCachedString(debugUrl, "DebugData");
-
+            const string debugUrl = "debugUrl";
+            await hcClientLocale.AddCachedStringAsync(debugUrl, "DebugData").ConfigureAwait(false);
 
             int i1 = 0;
             int i2 = 0;
@@ -179,36 +191,25 @@ namespace hccManager
             {
                 for (i1 = 0; i1 < 100; i1++)
                 {
-                    string url = tbUrl.Text.Trim();
-                    await hcClient.GetCachedStringAsync(debugUrl, (json, hi) =>
-                    {
-                        System.Diagnostics.Debug.WriteLine("tbLoop_Clicked1 " + i1.ToString() + "  " + i2.ToString());
-                    });
+                    HccResponse hccResponse =  await hcClientLocale.GetCachedStringAsync(debugUrl).ConfigureAwait(false);
+                    // System.Diagnostics.Debug.WriteLine("tbLoop_Clicked1 " + i1.ToString() + "  " + i2.ToString());
                     Task.Delay(100).Wait();
-                    Device.BeginInvokeOnMainThread(() =>
-                    {
-                        btnLoop.Text = "Loop " + i1.ToString() + "  " + i2.ToString();
-                    });
+                    Device.BeginInvokeOnMainThread(() => btnLoop.Text = "Loop " + i1.ToString() + "  " + i2.ToString());
                 }
             });
             Task.Run(async () =>
             {
                 for (i2 = 0; i2 < 200; i2++)
                 {
-                    string url = tbUrl.Text.Trim();
-                    await hcClient.GetCachedStringAsync(debugUrl, (json, hi) =>
-                    {
-                        System.Diagnostics.Debug.WriteLine("tbLoop_Clicked2 " + i1.ToString() + "  " + i2.ToString());
-                    });
+                    await hcClientLocale.GetCachedStringAsync(debugUrl).ConfigureAwait(false);
+                    // , (json, hi) => System.Diagnostics.Debug.WriteLine("tbLoop_Clicked2 " + i1.ToString() + "  " + i2.ToString())).ConfigureAwait(false);
                     Task.Delay(50).Wait();
-                    Device.BeginInvokeOnMainThread(() =>
-                    {
-                        btnLoop.Text = "Loop " + i1.ToString() + "  " + i2.ToString();
-                    });
+                    Device.BeginInvokeOnMainThread(() => btnLoop.Text = "Loop " + i1.ToString() + "  " + i2.ToString());
                 }
             });
         }
-        private async void btnImport_Clicked(object sender, EventArgs e)
+
+        private async void btnImport_ClickedAsync(object sender, EventArgs e)
         {
             string server = tbImportServer.Text.Trim();
             string site = tbImportSite.Text.Trim();
@@ -224,13 +225,13 @@ namespace hccManager
             try
             {
                 string configUrl = server + "config?site=" + site;
-                if( cbNodeJS.IsToggled == false )
+                if( !cbNodeJS.IsToggled  )
                 {
                     configUrl = server + ".hccConfig.json";
                 }
-                using (HttpResponseMessage response = await httpClient.GetAsync(configUrl, HttpCompletionOption.ResponseContentRead))
+                using (HttpResponseMessage response = await httpClient.GetAsync(configUrl, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false))
                 {
-                    string json = await response.Content.ReadAsStringAsync();
+                    string json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
                     hccConfig = Newtonsoft.Json.JsonConvert.DeserializeObject<HccConfig.Rootobject>(json);
                 }
@@ -238,23 +239,22 @@ namespace hccManager
             catch (Exception ex)
             {
                 // ToDo log this error
-                import_status_set("ERROR:site " + ex.ToString());
+                import_status_set("ERROR:site " + ex);
                 return;
             }
-
 
             if ( !string.IsNullOrEmpty(hccConfig.fileList) )
             {
                 try
                 {
                     string configUrl = server + "config?site=" + site + "&url=" + hccConfig.fileList;
-                    if (cbNodeJS.IsToggled == false)
+                    if ( !cbNodeJS.IsToggled )
                     {
                         configUrl = server + hccConfig.fileList;
                     }
-                    using (HttpResponseMessage response = await httpClient.GetAsync(configUrl, HttpCompletionOption.ResponseContentRead))
+                    using (HttpResponseMessage response = await httpClient.GetAsync(configUrl, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false))
                     {
-                        string json = await response.Content.ReadAsStringAsync();
+                        string json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
                         var files = Newtonsoft.Json.JsonConvert.DeserializeObject<string[]>(json);
                         var fl = hccConfig.files.ToList();
@@ -268,23 +268,21 @@ namespace hccManager
                         }
 
                         hccConfig.files = fl.ToArray();
-
                     }
                 }
                 catch (Exception ex)
                 {
                     // ToDo log this error
-                    import_status_set("ERROR:site " + ex.ToString());
+                    import_status_set("ERROR:site " + ex);
                     return;
                 }
             }
 
-
             import_status_set("got list from " + server + " with " + hccConfig.files.Length.ToString() + " entries");
 
-            var hcClient = (BindingContext as HMS.Net.Http.HttpCachedClient);
+            var hcClientLocale = (BindingContext as HMS.Net.Http.HttpCachedClient);
 
-            hcClient.AddCachedMetadata("hcc.url", hccConfig.url);
+            await hcClientLocale.AddCachedMetadataAsync("hcc.url", hccConfig.url).ConfigureAwait(false);
             string hccDefaultHTML = "index.html";
 
             for (int i = 0; i < hccConfig.files.Length; i++)
@@ -299,15 +297,15 @@ namespace hccManager
                 try
                 {
                     string entryUrl = server + "entry?site=" + site + "&url=" + hccConfig.files[i].url;
-                    if (cbNodeJS.IsToggled == false)
+                    if ( !cbNodeJS.IsToggled)
                     {
                         entryUrl = server + hccConfig.files[i].url;
                     }
-                    using (HttpResponseMessage response = await httpClient.GetAsync(entryUrl, HttpCompletionOption.ResponseContentRead))
+                    using (HttpResponseMessage response = await httpClient.GetAsync(entryUrl, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false))
                     {
-                        string headerString = hcClient.GetCachedHeader(response.Headers);
+                        string headerString = hcClientLocale.GetCachedHeader(response.Headers);
 
-                        Stream streamToReadFrom = await response.Content.ReadAsStreamAsync();
+                        Stream streamToReadFrom = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 
                         Stream strm = new MemoryStream();
                         streamToReadFrom.CopyTo(strm);
@@ -324,8 +322,8 @@ namespace hccManager
                                 data = datax;
                             }
 
-                            string[] externalURLs = new string[] { "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" };
-                            if (hccConfig.files[i].replace == true)
+                            string[] externalURLs =  { "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" };
+                            if (hccConfig.files[i].replace)
                             {
                                 string html = Encoding.UTF8.GetString(data, 0, data.Length);
                                 foreach (var pat in externalURLs)
@@ -334,22 +332,28 @@ namespace hccManager
                                 }
                                 data = Encoding.UTF8.GetBytes(html);
                             }
-                            byte zipped = hcClient.zipped;
+                            byte zipped = hcClientLocale.zipped;
                             if (hccConfig.files[i].zipped == "1")
                                 zipped = 1;
                             else if (hccConfig.files[i].zipped == "0")
                                 zipped = 0;
 
-                            if (hcClient.encryptFunction != null)
+                            if (hcClientLocale.encryptFunction != null)
                             {
-                                data = hcClient.encryptFunction(hccConfig.files[i].url, data);
+                                data = hcClientLocale.encryptFunction(hccConfig.files[i].url, data);
 
-                                hcClient.AddCachedStream(HccUtil.url_join(hccConfig.url, hccConfig.files[i].url), data, headers: headerString, zipped: hcClient.zipped, encrypted: 1);
+                                await hcClientLocale.AddCachedStreamAsync(HccUtil.url_join(hccConfig.url, hccConfig.files[i].url),
+                                    data,
+                                    headers: headerString,
+                                    zipped: hcClientLocale.zipped,
+                                    encrypted: 1).ConfigureAwait(false);
                             }
                             else
                             {
-
-                                hcClient.AddCachedStream(HccUtil.url_join(hccConfig.url, hccConfig.files[i].url), data, headers: headerString, zipped: zipped); // hcc.zipped);
+                                await hcClientLocale.AddCachedStreamAsync(HccUtil.url_join(hccConfig.url, hccConfig.files[i].url),
+                                    data,
+                                    headers: headerString,
+                                    zipped: zipped).ConfigureAwait(false);
                             }
                         }
                     }
@@ -357,12 +361,11 @@ namespace hccManager
                 catch (Exception ex)
                 {
                     // ToDo log this error
-                    import_status_set("ERROR:entry " + ex.ToString());
+                    import_status_set("ERROR:entry " + ex);
                     return;
                 }
-
             }
-            hcClient.AddCachedMetadata("hcc.defaultHTML", hccDefaultHTML);
+            await hcClientLocale.AddCachedMetadataAsync("hcc.defaultHTML", hccDefaultHTML).ConfigureAwait(false);
 
             import_status_set("got list of external from " + server + " with " + hccConfig.externalUrl.Length.ToString() + " entries");
             for (int i = 0; i < hccConfig.externalUrl.Length; i++)
@@ -370,7 +373,7 @@ namespace hccManager
                 import_status_set("get entry " + (i + 1).ToString() + " - " + hccConfig.externalUrl.Length.ToString());
                 try
                 {
-                    await addUrl(httpClient, hccConfig.externalUrl[i], hccConfig.zipped);
+                    await addUrlAsync(httpClient, hccConfig.externalUrl[i], hccConfig.zipped).ConfigureAwait(false);
 #if fasle
                     using (HttpResponseMessage response = await httpClient.GetAsync(hccConfig.externalUrl[i].url, HttpCompletionOption.ResponseContentRead))
                     {
@@ -419,7 +422,7 @@ namespace hccManager
                 catch (Exception ex)
                 {
                     // ToDo log this error
-                    import_status_set("ERROR:entry " + ex.ToString());
+                    import_status_set("ERROR:entry " + ex);
                     return;
                 }
             }// for
@@ -427,31 +430,30 @@ namespace hccManager
             try
             {
                 string externalJSUrl = server + "entry?site=" + site + "&url=" + hccConfig.externalJS.js;
-                if (cbNodeJS.IsToggled == false)
+                if ( !cbNodeJS.IsToggled )
                 {
                     externalJSUrl = server + ".hccExternal.js";
                 }
-                using (HttpResponseMessage response = await httpClient.GetAsync(externalJSUrl, HttpCompletionOption.ResponseContentRead))
+                using (HttpResponseMessage response = await httpClient.GetAsync(externalJSUrl, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false))
                 {
-                    string headerString = hcClient.GetCachedHeader(response.Headers);
-
-                    code.Text = await response.Content.ReadAsStringAsync();
+                    code_set(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
                 }
             }
             catch (Exception ex)
             {
                 // ToDo log this error
-                import_status_set("ERROR:entry " + ex.ToString());
+                import_status_set("ERROR:entry " + ex);
                 return;
             }
         }
-        private async Task addUrl(HttpClient httpClient, Externalurl externalUrl, string zippedDef)
+
+        private async Task addUrlAsync(HttpClient httpClient, Externalurl externalUrl, string zippedDef)
         {
-            using (HttpResponseMessage response = await httpClient.GetAsync(externalUrl.url, HttpCompletionOption.ResponseContentRead))
+            using (HttpResponseMessage response = await httpClient.GetAsync(externalUrl.url, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false))
             {
                 string headerString = hcClient.GetCachedHeader(response.Headers);
 
-                Stream streamToReadFrom = await response.Content.ReadAsStreamAsync();
+                Stream streamToReadFrom = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 
                 Stream strm = new MemoryStream();
                 streamToReadFrom.CopyTo(strm);
@@ -481,39 +483,52 @@ namespace hccManager
                     {
                         data = hcClient.encryptFunction(externalUrl.url, data);
 
-                        hcClient.AddCachedStream(externalUrl.url, data, headers: headerString, zipped: zipped, encrypted: 1);
+                        await hcClient.AddCachedStreamAsync(externalUrl.url, data, headers: headerString, zipped: zipped, encrypted: 1).ConfigureAwait(false);
                     }
                     else
                     {
-                        hcClient.AddCachedStream(externalUrl.url, data, headers: headerString, zipped: zipped);
+                        await hcClient.AddCachedStreamAsync(externalUrl.url, data, headers: headerString, zipped: zipped).ConfigureAwait(false);
                     }
                 }
             }
         }
+        private void code_set(string str)
+        {
+            Device.BeginInvokeOnMainThread(() => {
+                code.Text = str;
+            });
+            
+        }
         private void import_status_set(string status)
         {
-            lblImportStatus.Text = status;
+            Device.BeginInvokeOnMainThread(() => {
+                lblImportStatus.Text = status;
+            });
         }
-        private void import_status_add(string status)
+        private void server_status_set(string msg)
         {
-            lblImportStatus.Text += Environment.NewLine + status;
+            Device.BeginInvokeOnMainThread(() => {
+                lblServerStatus.Text = msg;
+            });
+        }
+        private void server_status_add(string msg)
+        {
+            Device.BeginInvokeOnMainThread(() => {
+                lblServerStatus.Text += msg;
+            });
         }
 
-        private async void btnExecute_Clicked(object sender, EventArgs e)
+        private async void btnExecute_ClickedAsync(object sender, EventArgs e)
         {
-            lblServerStatus.Text = "";
+            server_status_set("");
             JSInt jsint = new JSInt();
             jsint.onError = ((errMsg) => {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    System.Diagnostics.Debug.WriteLine(errMsg);
-                    lblServerStatus.Text += errMsg;
-                });
+                server_status_add(errMsg);
             });
             jsint.execute(code.Text);
 
-            code.Text = String.Join(Environment.NewLine, jsint.winext.addCachedAliasList) + String.Join(Environment.NewLine, jsint.winext.addCachedExternalDataList);
-            var hcClient = (BindingContext as HMS.Net.Http.HttpCachedClient);
+            code_set(String.Join(Environment.NewLine, jsint.winext.addCachedAliasList) + String.Join(Environment.NewLine, jsint.winext.addCachedExternalDataList));
+            var hcClientLocale = (BindingContext as HMS.Net.Http.HttpCachedClient);
 
             HttpClient httpClient = new HttpClient();
             int i = 0;
@@ -526,35 +541,30 @@ namespace hccManager
                 externalUrl.url = url;
                 externalUrl.zipped = "0";
                 externalUrl.replace = true;
-                await addUrl(httpClient, externalUrl, null);
-
+                await addUrlAsync(httpClient, externalUrl, null).ConfigureAwait(false);
             }
             foreach ( KeyValuePair<string,string> kv in jsint.winext.addCachedAliasList)
             {
                 string aliasUrl = kv.Key;
                 string url = kv.Value;
-                hcClient.AddCachedAliasUrl(aliasUrl, url);
-
+                await hcClientLocale.AddCachedAliasUrlAsync(aliasUrl, url).ConfigureAwait(false);
             }
             updateDatabaseTab();
-
         }
 
-        private void btnReset_Clicked(object sender, EventArgs e)
+        private async void btnReset_Clicked(object sender, EventArgs e)
         {
-            var hcClient = (BindingContext as HMS.Net.Http.HttpCachedClient);
-            hcClient.Reset();
-            updateDatabaseTab();
-
+            var hcClientLocale = (BindingContext as HMS.Net.Http.HttpCachedClient);
+            await hcClientLocale.ResetAsync();
+            updateDatabaseTab();            
         }
 
-        private void btnLoop_Clicked(object sender, EventArgs e)
+        private async void btnLoop_Clicked(object sender, EventArgs e)
         {
-            var hcClient = (BindingContext as HMS.Net.Http.HttpCachedClient);
+            var hcClientLocale = (BindingContext as HMS.Net.Http.HttpCachedClient);
 
-            string debugUrl = "debugUrl";
-            hcClient.AddCachedString(debugUrl, "DebugData");
-
+            const string debugUrl = "debugUrl";
+            await hcClientLocale.AddCachedStringAsync(debugUrl, "DebugData").ConfigureAwait(false);
 
             int i1 = 0;
             int i2 = 0;
@@ -562,55 +572,30 @@ namespace hccManager
             {
                 for (i1 = 0; i1 < 100; i1++)
                 {
-                    string url = tbUrl.Text.Trim();
-                    await hcClient.GetCachedStringAsync(debugUrl, (json, hi) =>
-                    {
-                        System.Diagnostics.Debug.WriteLine("tbLoop_Clicked1 " + i1.ToString() + "  " + i2.ToString());
-                    });
+                    HccResponse hccResponse = await hcClientLocale.GetCachedStringAsync(debugUrl).ConfigureAwait(false);
+                    // , (json, hi) => System.Diagnostics.Debug.WriteLine("tbLoop_Clicked1 " + i1.ToString() + "  " + i2.ToString())).ConfigureAwait(false);
                     Task.Delay(100).Wait();
-                    Device.BeginInvokeOnMainThread(() =>
-                    {
-                        btnLoop.Text = "Loop " + i1.ToString() + "  " + i2.ToString();
-                    });
+                    Device.BeginInvokeOnMainThread(() => btnLoop.Text = "Loop " + i1.ToString() + "  " + i2.ToString());
                 }
             });
             Task.Run(async () =>
             {
                 for (i2 = 0; i2 < 200; i2++)
                 {
-                    string url = tbUrl.Text.Trim();
-                    await hcClient.GetCachedStringAsync(debugUrl, (json, hi) =>
-                    {
-                        System.Diagnostics.Debug.WriteLine("tbLoop_Clicked2 " + i1.ToString() + "  " + i2.ToString());
-                    });
+                    HccResponse hccResponse = await hcClientLocale.GetCachedStringAsync(debugUrl).ConfigureAwait(false);
+                    // , (json, hi) => System.Diagnostics.Debug.WriteLine("tbLoop_Clicked2 " + i1.ToString() + "  " + i2.ToString())).ConfigureAwait(false);
                     Task.Delay(50).Wait();
-                    Device.BeginInvokeOnMainThread(() =>
-                    {
-                        btnLoop.Text = "Loop " + i1.ToString() + "  " + i2.ToString();
-                    });
+                    Device.BeginInvokeOnMainThread(() => btnLoop.Text = "Loop " + i1.ToString() + "  " + i2.ToString());
                 }
             });
             updateDatabaseTab();
-
         }
+
+        
     }
 
-
-    class bindingObj
+    internal class BindingObj
     {
-        private SqLiteCacheItem _SelectedItem;
-        public SqLiteCacheItem SelectedItem
-        {
-            get
-            {
-                return _SelectedItem;
-            }
-            set
-            {
-                _SelectedItem = value;
-            }
-        }
+        public SqLiteCacheItem SelectedItem { get; set; }
     }
-    
-    
 }
