@@ -178,37 +178,7 @@ namespace hccManager
             updateDatabaseTab();
         }
 
-        private async void tbLoop_Clicked(object sender, EventArgs e)
-        {
-            var hcClientLocale = (BindingContext as HMS.Net.Http.HttpCachedClient);
-
-            const string debugUrl = "debugUrl";
-            await hcClientLocale.AddCachedStringAsync(debugUrl, "DebugData").ConfigureAwait(false);
-
-            int i1 = 0;
-            int i2 = 0;
-            Task.Run(async () =>
-            {
-                for (i1 = 0; i1 < 100; i1++)
-                {
-                    HccResponse hccResponse =  await hcClientLocale.GetCachedStringAsync(debugUrl).ConfigureAwait(false);
-                    // System.Diagnostics.Debug.WriteLine("tbLoop_Clicked1 " + i1.ToString() + "  " + i2.ToString());
-                    Task.Delay(100).Wait();
-                    Device.BeginInvokeOnMainThread(() => btnLoop.Text = "Loop " + i1.ToString() + "  " + i2.ToString());
-                }
-            });
-            Task.Run(async () =>
-            {
-                for (i2 = 0; i2 < 200; i2++)
-                {
-                    await hcClientLocale.GetCachedStringAsync(debugUrl).ConfigureAwait(false);
-                    // , (json, hi) => System.Diagnostics.Debug.WriteLine("tbLoop_Clicked2 " + i1.ToString() + "  " + i2.ToString())).ConfigureAwait(false);
-                    Task.Delay(50).Wait();
-                    Device.BeginInvokeOnMainThread(() => btnLoop.Text = "Loop " + i1.ToString() + "  " + i2.ToString());
-                }
-            });
-        }
-
+      
         private async void btnImport_ClickedAsync(object sender, EventArgs e)
         {
             string server = tbImportServer.Text.Trim();
@@ -591,7 +561,42 @@ namespace hccManager
             updateDatabaseTab();
         }
 
-        
+        private void SegmentedTabControl_ItemTapped(object sender, int e)
+        {
+            SegmentedTabControl.FormsPlugin.SegmentedTabControl segmentedTabControl = (SegmentedTabControl.FormsPlugin.SegmentedTabControl)sender;
+            Grid[] grdList = { grdNodeJS, grdHccConfig, grdFilesystem };
+            for (int c = 0; c< segmentedTabControl.Children.Count; c++)
+            {
+                grdList[c].IsVisible = (c == e);
+            }
+            switch (e)
+            {
+                case 0:
+                    System.Diagnostics.Debug.WriteLine($"Selected: {e})");
+                    break;
+                case 1:
+                    System.Diagnostics.Debug.WriteLine($"Selected: {e})");
+                    break;
+                case 2:
+                    System.Diagnostics.Debug.WriteLine($"Selected: {e})");
+                    break;
+                // If set to -1 then NO segments will be selected
+                default:
+                    System.Diagnostics.Debug.WriteLine($"No Segments Selected: {e}");
+                    break;
+            }
+
+        }
+
+        private void btnImportFS_Clicked(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnImportHccConfig_Clicked(object sender, EventArgs e)
+        {
+
+        }
     }
 
     internal class BindingObj

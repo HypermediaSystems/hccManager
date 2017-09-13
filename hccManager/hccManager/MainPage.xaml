@@ -2,6 +2,7 @@
 <TabbedPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
             xmlns:local="clr-namespace:hcc;assembly=hccManager"
+            xmlns:controls="clr-namespace:SegmentedTabControl.FormsPlugin"
              x:Class="hccManager.MainPage">
     <!--Pages can be added as references or inline-->
     <ContentPage Title="Database" >
@@ -161,7 +162,15 @@
 
     <ContentPage Title="Import" >
         <StackLayout Margin="20" VerticalOptions="StartAndExpand">
-            <Grid ColumnSpacing="10"
+            <controls:SegmentedTabControl UnselectedSegmentBackgroundColor="Gray" TintColor="LightGray" SelectedSegment="0" ItemTapped="SegmentedTabControl_ItemTapped">
+                <controls:SegmentedTabControl.Children>
+                    <Label Text="NodeJS"     x:Name="lblNodeJs" ClassId="lblNodeJs" />
+                    <Label Text=".hccConfig" x:Name="lblHccConfig" ClassId="lblHccConfig" />
+                    <Label Text="Filesystem" x:Name="lblFilesystem" ClassId="lblFilesystem" />
+                </controls:SegmentedTabControl.Children>
+            </controls:SegmentedTabControl>
+            
+            <Grid IsVisible="False" x:Name="grdNodeJS" ColumnSpacing="10"
                     RowSpacing="10"
                     HorizontalOptions="FillAndExpand"
                     VerticalOptions="Start">
@@ -187,10 +196,75 @@
                 <Label Grid.Row="1" Grid.Column="0" Text="Site" />
                 <Entry Grid.Row="1" Grid.Column="1" x:Name="tbImportSite" Text="test"  />
                 <Button Grid.Row="2" Grid.Column="0"  x:Name="btnImport" Text="Import" Clicked="btnImport_ClickedAsync"/>
+            </Grid>
 
-                <Label Grid.Row="3" Grid.Column="0" x:Name="lblImportStatus" Text="" />
-                <Button Grid.Row="4" Grid.Column="0" Text="execute" x:Name="btnExecute" Clicked="btnExecute_ClickedAsync"/>
-                <Editor Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3" x:Name="code" HeightRequest="500" Text="">
+            <Grid IsVisible="False"  x:Name="grdHccConfig" ColumnSpacing="10"
+                    RowSpacing="10"
+                    HorizontalOptions="FillAndExpand"
+                    VerticalOptions="Start">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="3*" />
+                </Grid.ColumnDefinitions>
+                <Label Grid.Row="0" Grid.Column="0" Text="Server" />
+                <Entry Grid.Row="0" Grid.Column="1" x:Name="tbImportHccConfig" Text="http://192.168.30.103:3000/test/.hccConfig"  />
+                <Button Grid.Row="2" Grid.Column="0"  x:Name="btnImportHccConfig" Text="Import" Clicked="btnImportHccConfig_Clicked"/>
+            </Grid>
+
+            <Grid IsVisible="False" x:Name="grdFilesystem" ColumnSpacing="10"
+                    RowSpacing="10"
+                    HorizontalOptions="FillAndExpand"
+                    VerticalOptions="Start">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="3*" />
+                </Grid.ColumnDefinitions>
+                <Label Grid.Row="1" Grid.Column="0" Text="Path" />
+                <Entry Grid.Row="1" Grid.Column="1" x:Name="tbImportPath" Text="test"  />
+                <Button Grid.Row="2" Grid.Column="0"  x:Name="btnImportFS" Text="Import" Clicked="btnImportFS_Clicked"/>
+            </Grid>
+
+            <Grid ColumnSpacing="10"
+                    RowSpacing="10"
+                    HorizontalOptions="FillAndExpand"
+                    VerticalOptions="Start">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="3*" />
+                </Grid.ColumnDefinitions>
+                <Label Grid.Row="0" Grid.Column="0" x:Name="lblImportStatus" Text="" />
+                <Button Grid.Row="1" Grid.Column="0" Text="execute" x:Name="btnExecute" Clicked="btnExecute_ClickedAsync"/>
+                <Editor Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" x:Name="code" HeightRequest="500" Text="">
                     <Editor.BackgroundColor>
                         <OnPlatform x:TypeArguments="Color"
                                 iOS="#eeeeee"
@@ -198,8 +272,8 @@
                                 WinPhone="#eeeeee" />
                     </Editor.BackgroundColor>
                 </Editor>
-            </Grid>
 
+            </Grid>
 
 
 
