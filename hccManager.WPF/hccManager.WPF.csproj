@@ -38,11 +38,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="HMSCache, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\HttpCachedClient.HMS.1.0.53\lib\net452\HMSCache.dll</HintPath>
+      <HintPath>..\packages\HttpCachedClient.HMS.1.0.56\lib\net452\HMSCache.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="HMSCache.NET, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\HttpCachedClient.HMS.1.0.53\lib\net452\HMSCache.NET.dll</HintPath>
+      <HintPath>..\packages\HttpCachedClient.HMS.1.0.56\lib\net452\HMSCache.NET.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="PCLStorage, Version=1.0.2.0, Culture=neutral, PublicKeyToken=286fe515a2c35b64, processorArchitecture=MSIL">

@@ -41,7 +41,7 @@ namespace HccConfig
     public class Externalurl
     {
         public string url { get; set; }
-        public bool replace { get; set; }
+        public string replace { get; set; }
         public string zipped { get; set; }
     }
 

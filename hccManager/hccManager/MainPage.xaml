@@ -217,7 +217,7 @@
                     <ColumnDefinition Width="3*" />
                 </Grid.ColumnDefinitions>
                 <Label Grid.Row="0" Grid.Column="0" Text="Server" />
-                <Entry Grid.Row="0" Grid.Column="1" x:Name="tbImportHccConfig" Text="http://192.168.30.103:3000/test/.hccConfig"  />
+                <Entry Grid.Row="0" Grid.Column="1" x:Name="tbImportHccConfig" Text="http://localhost:20400/"  />
                 <Button Grid.Row="2" Grid.Column="0"  x:Name="btnImportHccConfig" Text="Import" Clicked="btnImportHccConfig_Clicked"/>
             </Grid>
 
@@ -264,6 +264,7 @@
                 </Grid.ColumnDefinitions>
                 <Label Grid.Row="0" Grid.Column="0" x:Name="lblImportStatus" Text="" />
                 <Button Grid.Row="1" Grid.Column="0" Text="execute" x:Name="btnExecute" Clicked="btnExecute_ClickedAsync"/>
+                <Button Grid.Row="1" Grid.Column="1" Text="check" x:Name="btnCheck" Clicked="btnCheck_Clicked"/>
                 <Editor Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" x:Name="code" HeightRequest="500" Text="">
                     <Editor.BackgroundColor>
                         <OnPlatform x:TypeArguments="Color"

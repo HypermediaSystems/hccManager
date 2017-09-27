@@ -53,11 +53,11 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="HMSCache, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\HttpCachedClient.HMS.1.0.52\lib\MonoAndroid10\HMSCache.dll</HintPath>
+      <HintPath>..\..\packages\HttpCachedClient.HMS.1.0.56\lib\MonoAndroid10\HMSCache.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="HMSCache.Android, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\HttpCachedClient.HMS.1.0.52\lib\MonoAndroid10\HMSCache.Android.dll</HintPath>
+      <HintPath>..\..\packages\HttpCachedClient.HMS.1.0.56\lib\MonoAndroid10\HMSCache.Android.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="jint, Version=2.10.4.0, Culture=neutral, PublicKeyToken=2e92ba9c8d81157f, processorArchitecture=MSIL">
