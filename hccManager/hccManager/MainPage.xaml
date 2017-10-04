@@ -162,42 +162,13 @@
 
     <ContentPage Title="Import" >
         <StackLayout Margin="20" VerticalOptions="StartAndExpand">
-            <controls:SegmentedTabControl UnselectedSegmentBackgroundColor="Gray" TintColor="LightGray" SelectedSegment="0" ItemTapped="SegmentedTabControl_ItemTapped">
+            <controls:SegmentedTabControl UnselectedSegmentBackgroundColor="Gray" TintColor="LightGray" SelectedSegment="1" ItemTapped="SegmentedTabControl_ItemTapped">
                 <controls:SegmentedTabControl.Children>
-                    <Label Text="NodeJS"     x:Name="lblNodeJs" ClassId="lblNodeJs" />
                     <Label Text=".hccConfig" x:Name="lblHccConfig" ClassId="lblHccConfig" />
                     <Label Text="Filesystem" x:Name="lblFilesystem" ClassId="lblFilesystem" />
                 </controls:SegmentedTabControl.Children>
             </controls:SegmentedTabControl>
             
-            <Grid IsVisible="False" x:Name="grdNodeJS" ColumnSpacing="10"
-                    RowSpacing="10"
-                    HorizontalOptions="FillAndExpand"
-                    VerticalOptions="Start">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="3*" />
-                    <ColumnDefinition Width="3*" />
-                    <ColumnDefinition Width="3*" />
-                </Grid.ColumnDefinitions>
-                <Label Grid.Row="0" Grid.Column="0" Text="Server" />
-                <Entry Grid.Row="0" Grid.Column="1" x:Name="tbImportServer" Text="http://192.168.30.103:3000/"  />
-                <StackLayout Orientation="Horizontal" Grid.Row="0" Grid.Column="2" >
-                    <Switch x:Name="cbNodeJS" IsToggled="true"/> <Label Text="is NodeJS"/>
-                </StackLayout>
-                <Label Grid.Row="1" Grid.Column="0" Text="Site" />
-                <Entry Grid.Row="1" Grid.Column="1" x:Name="tbImportSite" Text="test"  />
-                <Button Grid.Row="2" Grid.Column="0"  x:Name="btnImport" Text="Import" Clicked="btnImport_ClickedAsync"/>
-            </Grid>
-
             <Grid IsVisible="False"  x:Name="grdHccConfig" ColumnSpacing="10"
                     RowSpacing="10"
                     HorizontalOptions="FillAndExpand"
@@ -216,8 +187,9 @@
                     <ColumnDefinition Width="3*" />
                     <ColumnDefinition Width="3*" />
                 </Grid.ColumnDefinitions>
-                <Label Grid.Row="0" Grid.Column="0" Text="Server" />
-                <Entry Grid.Row="0" Grid.Column="1" x:Name="tbImportHccConfig" Text="http://localhost:20400/"  />
+                <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="Load the files from a server that supplies a .hccConfig.xml file." />
+                <Label Grid.Row="1" Grid.Column="0" Text="Server" />
+                <Entry Grid.Row="1" Grid.Column="1" x:Name="tbImportHccConfig" Text="http://localhost:20400/"  />
                 <Button Grid.Row="2" Grid.Column="0"  x:Name="btnImportHccConfig" Text="Import" Clicked="btnImportHccConfig_Clicked"/>
             </Grid>
 
@@ -239,9 +211,12 @@
                     <ColumnDefinition Width="3*" />
                     <ColumnDefinition Width="3*" />
                 </Grid.ColumnDefinitions>
+                <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="NOT YET IMPLEMENTED!!!! Load the files from the filesystem." />
                 <Label Grid.Row="1" Grid.Column="0" Text="Path" />
-                <Entry Grid.Row="1" Grid.Column="1" x:Name="tbImportPath" Text="test"  />
-                <Button Grid.Row="2" Grid.Column="0"  x:Name="btnImportFS" Text="Import" Clicked="btnImportFS_Clicked"/>
+                <Entry Grid.Row="1" Grid.Column="1" x:Name="tbImportPath" Text="E:\user\hms\xamarin\HccManagerNodeJS\HccManagerNodeJS\sites\test"  />
+                <Label Grid.Row="2" Grid.Column="0" Text="Pattern" />
+                <Entry Grid.Row="2" Grid.Column="1" x:Name="tbImportPattern" Text="*.html *.js *.css"  />
+                <Button Grid.Row="3" Grid.Column="0"  x:Name="btnImportFS" Text="Import" Clicked="btnImportFS_Clicked"/>
             </Grid>
 
             <Grid ColumnSpacing="10"

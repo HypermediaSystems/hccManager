@@ -178,7 +178,7 @@ namespace hccManager
             updateDatabaseTab();
         }
 
-      
+#if false
         private async void btnImport_ClickedAsync(object sender, EventArgs e)
         {
             string server = tbImportServer.Text.Trim();
@@ -416,6 +416,7 @@ namespace hccManager
                 return;
             }
         }
+#endif
 
         private async Task addUrlAsync(HttpClient httpClient, string url, string zippedDef)
         {
@@ -564,7 +565,7 @@ namespace hccManager
         private void SegmentedTabControl_ItemTapped(object sender, int e)
         {
             SegmentedTabControl.FormsPlugin.SegmentedTabControl segmentedTabControl = (SegmentedTabControl.FormsPlugin.SegmentedTabControl)sender;
-            Grid[] grdList = { grdNodeJS, grdHccConfig, grdFilesystem };
+            Grid[] grdList = { grdHccConfig, grdFilesystem };
             for (int c = 0; c< segmentedTabControl.Children.Count; c++)
             {
                 grdList[c].IsVisible = (c == e);
@@ -590,6 +591,10 @@ namespace hccManager
 
         private void btnImportFS_Clicked(object sender, EventArgs e)
         {
+            string basedir = tbImportPath.Text.Trim();
+            string[] pattern = tbImportPattern.Text.Trim().Split(' ');
+
+
 
         }
 
