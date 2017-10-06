@@ -418,7 +418,7 @@ namespace hccManager
         }
 #endif
 
-        private async Task addUrlAsync(HttpClient httpClient, string url, string zippedDef)
+        private async Task<Boolean> addUrlAsync(HttpClient httpClient, string url, string zippedDef)
         {
             using (HttpResponseMessage response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false))
             {
@@ -457,9 +457,16 @@ namespace hccManager
                     {
                         await hcClient.AddCachedStreamAsync(url, data, headers: headerString, zipped: zipped).ConfigureAwait(false);
                     }
+                    return true;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("ERR: " + url + " " + response.StatusCode);
+                    return false;
                 }
             }
         }
+        
         private void code_set(string str)
         {
             Device.BeginInvokeOnMainThread(() => {
@@ -512,7 +519,11 @@ namespace hccManager
                 import_status_set("get external " + (i + 1).ToString() + " - " + jsint.winext.addCachedExternalDataList.Count.ToString());
                 i++;
 
-                await addUrlAsync(httpClient, url, "0").ConfigureAwait(false);
+                var success = await addUrlAsync(httpClient, url, "0").ConfigureAwait(false);
+                if( !success)
+                {
+                    code_add("Errror: "+ url + " not loaded");
+                }
             }
             foreach ( KeyValuePair<string,string> kv in jsint.winext.addCachedAliasList)
             {
@@ -762,7 +773,8 @@ namespace hccManager
                     import_status_set("get entry " + (i + 1).ToString() + " - " + hccConfig.externalData.Length.ToString());
                     try
                     {
-                        await addUrlAsync(httpClient, hccConfig.externalData[i].url, hccConfig.zipped).ConfigureAwait(false);
+                        var success = await addUrlAsync(httpClient, hccConfig.externalData[i].url, hccConfig.zipped).ConfigureAwait(false);
+                        
                     }
                     catch (Exception ex)
                     {
