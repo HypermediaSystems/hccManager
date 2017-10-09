@@ -623,8 +623,7 @@ namespace hccManager
             HccConfig.Rootobject hccConfig;
             try
             {
-                string configUrl = server; //  + "config?site=" + site;
-                configUrl = server + ".hccConfig.json";
+                string configUrl = server + ".hccConfig.json";
                 
                 using (HttpResponseMessage response = await httpClient.GetAsync(configUrl, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false))
                 {
